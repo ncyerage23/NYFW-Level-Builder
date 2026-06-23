@@ -24,33 +24,35 @@ NYFW_Canvas scr;
 /* ----- INIT/CLOSE ----- */
 int setup(const char* arg)
 {
+	if (!nyfw_windowInit())
+		return 0;
+	
+	scr = nyfw_getWindowCanvas();
+	NYFW_Canvas tile_palette = load_tiles();
 
-
-	if (!nyfw_inputInit(INPUT_MOUSE | INPUT_KEYS)) { 
-		free_tile();
-		nyfw_windowClose();
-		return 0; 
-	}
-
-	if (!tile_mod_init(scr)) {
-		free_tile();
-		nyfw_inputClose();
+	if (!level_mod_init(scr, nyfw_canvasScaleUp(tile_palette, 10))) {
+		free(tile_palette.pixels);
 		nyfw_windowClose();
 		return 0;
 	}
 
-	if (!palette_mod_init(scr)) {
-		free_tile();
-		nyfw_inputClose();
+	if (!palette_mod_init(scr, nyfw_canvasScaleUp(tile_palette, 7))) {
+		free(tile_palette.pixels);
+		level_mod_shutdown();
 		nyfw_windowClose();
 		return 0;
 	}
+
+
+	free(tile_palette.pixels);
+	return 1;
+
 }
 
 void shutdown()
 {
-	save_file();
-	nyfw_inputClose();
+	level_mod_shutdown();
+	palette_mod_shutdown();
 	nyfw_windowClose();
 }
 
@@ -88,72 +90,17 @@ void draw_mouse()
 
 int main(int argc, char* argv[]) 
 {
-	NYFW_Canvas tile_palette = load_tiles();
 	
-	if (!nyfw_windowInit())
-		return 0;
-	scr = nyfw_getWindowCanvas();
+	if (!setup("")) return 1;
+
 	
 	nyfw_canvasClear(scr);
-	
-	NYFW_Canvas test = nyfw_canvasScaleUp(tile_palette, 10);
-
-	nyfw_canvasBlit(test, NULL, scr, NULL);
-
-
-
-
+	level_mod_draw();
+	palette_mod_draw();
 	nyfw_windowPresent();
-	sleep(1);
-
-	free(tile_palette.pixels);
-	free(test.pixels);
-	nyfw_windowClose();
 	
 
-
-	return 0;
-
-
-
-
-
-
-	const char* arg;
-	if (argc <= 1) arg = "";
-	else arg = argv[1];
-
-	if( !setup(arg) ) return 1;
-	
-	int sw = scr.width, sh = scr.height;
-	nyfw_canvasClear(scr);
-
-	while (1) {
-		nyfw_inputPoll();
-		
-		// update (TODO: make this a separate function)
-		if (nyfw_inputKeyPressed(NYFW_KEY_ESC)) break;
-
-		int mdx = (float)nyfw_inputMouseDX() * m_sensitivity_x;
-		int mdy = (float)nyfw_inputMouseDY() * m_sensitivity_y;
-
-		if (nyfw_inputMBPressed(NYFW_MB_L)) {
-			tile_check_input(mx+mdx, my+mdy);
-			palette_check_input(mx+mdx, my+mdy);
-		}
-
-		// draw (TODO: make this also a separate function)
-		undraw_mouse();
-		tile_mod_draw();
-		palette_mod_draw();
-		mx += mdx;
-		my += mdy;
-		draw_mouse();
-
-		// present
-		nyfw_windowPresent();
-	}
-
+	sleep(3);
 
 	shutdown();
 	return 0;

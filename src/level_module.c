@@ -1,98 +1,68 @@
 /*
  * LEVEL MODULE
  *
+ * The place the user will build the level! Very simple stuff. 
+ * I mean, I'm really just copying old code and changing it. So yeah. 
  *
  */
 
 #include "level_builder.h"
+#include <stdlib.h>
 
 
-int border_len = 20;	// length of TileModule border
-int pixel_size = 75;
+int border_len = 20;	// length of LevelModule border
+int tile_size = 80;
 
 typedef struct {
-	NYFW_Rect tile_rect;		// rect for the entire tile
-	NYFW_Rect pixel_rects[64]; 	// rects for each pixel
-	NYFW_Rect border_rects[4];	// rects for drawing the border
-
-	uint16_t pixels[64];	// gonna remove this
-
-	NYFW_Canvas tiles;		// the tiles to copy over (maybe need rects too? Idk)
-	NYFW_Rect tile_rects[16];
+	NYFW_Rect level_rect;		// rect for the entire level
+	NYFW_Rect border_rects[2];	// rects for drawing the border
+	
+	NYFW_Canvas tiles;		// the tiles to copy over
 
 	NYFW_Canvas scr;
-} TileModule;
+} LevelModule;
 
-TileModule tmod;
+LevelModule lmod;
 
-int tile_mod_init(NYFW_Canvas scr)
+
+int level_mod_init(NYFW_Canvas scr, NYFW_Canvas tiles)
 {
-	tmod.scr = scr;
+	lmod.scr = scr;
+	lmod.tiles = tiles;
 
 	/* ----- SCREEN DIMENSIONS ----- */
 	int sw = scr.width, 	sh = scr.height;		// screen dimensions
 	int centerx = sw / 2, 	centery = sh / 2;		// center of the screen
 	
-	/* ----- TILE RECTS ----- */
-	int rl_2 = pixel_size * 4;
-	int rl = rl_2 * 2;	// width of the tile
-	int rx = centerx - rl_2, 	ry = centery - rl_2;	// top-left corner of the tile
-	
-	tmod.tile_rect = (NYFW_Rect){ rx, ry, rl, rl };
+	/* ----- MODULE RECT ----- */
+	int rx = centerx - centery,	ry = 0;
+	int rl = sh;
+	lmod.level_rect = (NYFW_Rect){ rx, ry, rl, rl };
 
 	/* ----- BORDER RECTS ----- */
-	int cvx = rx - border_len, 	cvy = ry - border_len;
-	int cvl = rl + 2 * border_len;
-
-	tmod.border_rects[0] = (NYFW_Rect){ cvx, cvy, cvl, border_len };				// top
-	tmod.border_rects[1] = (NYFW_Rect){ cvx, cvy+border_len+rl, cvl, border_len };			// bottom
-	tmod.border_rects[2] = (NYFW_Rect){ cvx, cvy+border_len, border_len, rl };			// left
-	tmod.border_rects[3] = (NYFW_Rect){ cvx+border_len+rl, cvy+border_len, border_len, rl };	// right
-
-	// TODO: add a text thing at the top
+	lmod.border_rects[0] = (NYFW_Rect){ rx-border_len, ry, border_len, rl };	// left
+	lmod.border_rects[1] = (NYFW_Rect){ rx+rl, ry, border_len, rl };		// right
 	
-
-	/* ------ PIXEL ARRAY ----- */
-	for (int i = 0; i < 64; i++)
-		tmod.pixels[i] = 0x0000;
-	
-	/* ----- PIXEL RECTS ----- */
-	for (int i = 0; i < 8; i++)
-		for (int j = 0; j < 8; j++)
-			tmod.pixel_rects[j * 8 + i] = (NYFW_Rect){ rx + i * pixel_size, ry + j * pixel_size, pixel_size, pixel_size };
 	
 	return 1;
 }
 
 
-void tile_mod_draw()
+void level_mod_draw()
 {
-	for (int i = 0; i < 4; i++)
-		nyfw_canvasFill(tmod.scr, LBLUE, &tmod.border_rects[i]);
+	for (int i = 0; i < 2; i++)
+		nyfw_canvasFill(lmod.scr, LBLUE, &lmod.border_rects[i]);
 
-	for (int i = 0; i < 64; i++)
-		nyfw_canvasFill(tmod.scr, tile.pixels[i], &tmod.pixel_rects[i]);
 }
 
 
 
-void tile_check_input(int x, int y)
+void level_check_input(int x, int y)
 {
-	if (!IN_RECT(tmod.tile_rect, x, y)) return;
-	
 
-	for (int i = 0; i < 64; i++) {
-		if (IN_RECT(tmod.pixel_rects[i], x, y)) {
-			tile.pixels[i] = current_color;
-			break;
-		}
-	}
 }
 
-NYFW_Canvas get_tile()
+void level_mod_shutdown()
 {
-	uint16_t* p = tmod.pixels;
-	return nyfw_canvas(p, 8, 8, 8);
+	free(lmod.tiles.pixels);
 }
-
-

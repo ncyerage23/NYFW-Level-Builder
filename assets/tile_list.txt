@@ -1,3 +1,7 @@
+assets/tiles/blank.nymg
 assets/tiles/grass.nymg
 assets/tiles/poo.nymg
 assets/tiles/test.nymg
+assets/tiles/ice.nymg
+assets/tiles/dirt.nymg
+assets/tiles/stone.nymg
