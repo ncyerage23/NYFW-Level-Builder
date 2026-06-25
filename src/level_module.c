@@ -52,9 +52,9 @@ int level_mod_init(NYFW_Canvas scr, NYFW_Canvas tiles)
 			lmod.tile_rects[j * 16 + i] = (NYFW_Rect){ rx + i * tile_size, ry + j * tile_size, tile_size, tile_size };
 	
 	/* ----- TILE SOURCE RECTS ----- */
-	for (int i = 0; i < 16; i++)
-		for (int j = 0; j < 16; j++)
-			lmod.tile_src_rects[j * 16 + i] = (NYFW_Rect){ i * tile_size, j * tile_size, tile_size, tile_size };
+	for (int i = 0; i < 4; i++)
+		for (int j = 0; j < 4; j++)
+			lmod.tile_src_rects[j * 4 + i] = (NYFW_Rect){ i * tile_size, j * tile_size, tile_size, tile_size };
 
 	return 1;
 }
@@ -65,10 +65,6 @@ void level_mod_draw()
 	for (int i = 0; i < 2; i++)
 		nyfw_canvasFill(lmod.scr, LBLUE, &lmod.border_rects[i]);
 	
-	nyfw_canvasBlit(lmod.tiles, NULL, lmod.scr, &lmod.level_rect);
-
-
-	return;
 	for (int i = 0; i < 256; i++) {
 		int tile_idx = level.pixels[i];
 		if (tile_idx == 0) continue;
