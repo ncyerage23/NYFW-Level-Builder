@@ -16,9 +16,9 @@
 
 
 /* ----- GLOBALS ----- */
-extern NYFW_Canvas tile;
+extern NYFW_Canvas level;
 extern char file_path[256];
-extern uint16_t current_color;
+extern int current_tile;
 
 
 /* ----- LEVEL MODULE ----- */

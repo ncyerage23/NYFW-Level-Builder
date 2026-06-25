@@ -10,14 +10,21 @@
  * (for now) The maps will be stored as canvases, but the pixel data will actually be
  * tile data. I'm gonna use a ".nymap" file extension for the saved maps. Yup. 
  *
+ *
+ *
+ * IMPORTANT!!!! DO NOT RUN THIS UNTIL YOU CHANGE A BUNCH OF STUFF!!!
+ * I tried running it and it crashed immediately, so a lot is gonna need to 
+ * change before I try again. Idk what yet, but a lot. 
+ *
  */
 
 #include "level_builder.h"
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 
 
-NYFW_Canvas tile;
+NYFW_Canvas level;
 NYFW_Canvas scr;
 
 
@@ -42,8 +49,21 @@ int setup(const char* arg)
 		nyfw_windowClose();
 		return 0;
 	}
+	
+	if (!nyfw_inputInit(INPUT_MOUSE | INPUT_KEYS)) {
+		free(tile_palette.pixels);
+		level_mod_shutdown();
+		palette_mod_shutdown();
+		nyfw_windowClose();
+		return 0;
+	}
 
-
+	level.pixels = (uint16_t*)malloc(2 * 16 * 16);
+	memset(level.pixels, 0, 512);
+	level.width = 16;
+	level.height = 16;
+	level.stride = 16;
+	
 	free(tile_palette.pixels);
 	return 1;
 
@@ -53,16 +73,18 @@ void shutdown()
 {
 	level_mod_shutdown();
 	palette_mod_shutdown();
+	nyfw_inputClose();
 	nyfw_windowClose();
+
+	free(level.pixels);
 }
 
 
 
+/* ----- MOUSE ----- */
 
-/* ----- MAIN ----- */
-
-// mouse
 int mx = 10, my = 10;
+int mdx = 0, mdy = 0;
 float m_sensitivity_y = 1.5;
 float m_sensitivity_x = 2.0;
 
@@ -76,7 +98,6 @@ void undraw_mouse()
 
 }
 
-
 void draw_mouse()
 {
 	nyfw_canvSetPixel(scr, mx, my, 0xffff);
@@ -88,19 +109,55 @@ void draw_mouse()
 }
 
 
+/* ----- UPDATE/DRAW ----- */
+int running = 1;
+
+void update()
+{
+	nyfw_inputPoll();
+
+	if (nyfw_inputKeyPressed(NYFW_KEY_ESC)) 
+	{
+		running = 0;
+		return;
+	}
+
+	mdx = (float)nyfw_inputMouseDX() * m_sensitivity_x;
+	mdy = (float)nyfw_inputMouseDY() * m_sensitivity_y;
+
+	if (nyfw_inputMBPressed(NYFW_MB_L)) {
+		level_check_input(mx+mdx, my+mdy);
+		palette_check_input(mx+mdx, my+mdy);
+	}
+
+}
+
+
+void draw()
+{
+	undraw_mouse();
+	level_mod_draw();
+	palette_mod_draw();
+	mx += mdx;
+	my += mdy;
+	draw_mouse();
+}
+
+
+/* ----- MAIN ----- */
+
 int main(int argc, char* argv[]) 
 {
 	
-	if (!setup("")) return 1;
-
-	
+	if (!setup("")) return 1;	
 	nyfw_canvasClear(scr);
-	level_mod_draw();
-	palette_mod_draw();
-	nyfw_windowPresent();
 	
-
-	sleep(3);
+	while (running) {
+		update();
+		if (!running) break;
+		draw();
+		nyfw_windowPresent();
+	}
 
 	shutdown();
 	return 0;

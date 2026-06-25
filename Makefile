@@ -4,7 +4,7 @@ BDIR=build
 OBJ=build/main.o build/level_module.o build/nymap.o build/tile_palette.o build/tile_loader.o
 
 level-builder: $(OBJ)
-	gcc $(OBJ) -lnyfw -o $@
+	gcc -g $(OBJ) -lnyfw -o $@
 
 $(BDIR):
 	mkdir -p $(BDIR)
