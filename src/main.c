@@ -39,7 +39,7 @@ int setup(const char* arg)
 	scr = nyfw_getWindowCanvas();
 	NYFW_Canvas tile_palette = load_tiles();
 
-	if (!level_mod_init(scr, nyfw_canvasScaleUp(tile_palette, 10))) {
+	if (!level_mod_init(scr, nyfw_canvasScaleUp(tile_palette, 8))) {
 		free_tile();
 		free(tile_palette.pixels);
 		nyfw_windowClose();

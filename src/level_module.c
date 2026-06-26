@@ -11,11 +11,11 @@
 
 
 int border_len = 20;	// length of LevelModule border
-int tile_size = 80;
+int tile_size = 64;
 
 typedef struct {
 	NYFW_Rect level_rect;		// rect for the entire level
-	NYFW_Rect border_rects[2];	// rects for drawing the border
+	NYFW_Rect border_rects[4];	// rects for drawing the border
 	
 	NYFW_Rect tile_rects[256];	// rects for each potential tile
 
@@ -38,14 +38,16 @@ int level_mod_init(NYFW_Canvas scr, NYFW_Canvas tiles)
 	int centerx = sw / 2, 	centery = sh / 2;		// center of the screen
 	
 	/* ----- MODULE RECT ----- */
-	int rx = centerx - centery,	ry = 0;
-	int rl = sh;
+	int rx = 448,	ry = 28;
+	int rl = 1024;
 	lmod.level_rect = (NYFW_Rect){ rx, ry, rl, rl };
 
 	/* ----- BORDER RECTS ----- */
-	lmod.border_rects[0] = (NYFW_Rect){ rx-border_len, ry, border_len, rl };	// left
-	lmod.border_rects[1] = (NYFW_Rect){ rx+rl, ry, border_len, rl };		// right
-	
+	lmod.border_rects[0] = (NYFW_Rect){ rx-border_len, ry, border_len, rl };				// left
+	lmod.border_rects[1] = (NYFW_Rect){ rx+rl, ry, border_len, rl };					// right
+	lmod.border_rects[2] = (NYFW_Rect){ rx-border_len, ry-border_len, 2*border_len+rl, border_len };	// top
+	lmod.border_rects[3] = (NYFW_Rect){ rx-border_len, ry+rl, 2*border_len+rl, border_len };		// bottom
+
 	/* ----- TILE RECTS ----- */
 	for (int i = 0; i < 16; i++)
 		for (int j = 0; j < 16; j++)
@@ -62,7 +64,7 @@ int level_mod_init(NYFW_Canvas scr, NYFW_Canvas tiles)
 
 void level_mod_draw()
 {
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < 4; i++)
 		nyfw_canvasFill(lmod.scr, LBLUE, &lmod.border_rects[i]);
 	
 	for (int i = 0; i < 256; i++) {
