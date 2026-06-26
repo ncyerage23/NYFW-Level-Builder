@@ -31,6 +31,8 @@ NYFW_Canvas scr;
 /* ----- INIT/CLOSE ----- */
 int setup(const char* arg)
 {
+	if (!init_file(arg)) return 0;
+
 	if (!nyfw_windowInit())
 		return 0;
 	
@@ -38,12 +40,14 @@ int setup(const char* arg)
 	NYFW_Canvas tile_palette = load_tiles();
 
 	if (!level_mod_init(scr, nyfw_canvasScaleUp(tile_palette, 10))) {
+		free_tile();
 		free(tile_palette.pixels);
 		nyfw_windowClose();
 		return 0;
 	}
 
 	if (!palette_mod_init(scr, nyfw_canvasScaleUp(tile_palette, 7))) {
+		free_tile();
 		free(tile_palette.pixels);
 		level_mod_shutdown();
 		nyfw_windowClose();
@@ -51,6 +55,7 @@ int setup(const char* arg)
 	}
 	
 	if (!nyfw_inputInit(INPUT_MOUSE | INPUT_KEYS)) {
+		free_tile();
 		free(tile_palette.pixels);
 		level_mod_shutdown();
 		palette_mod_shutdown();
@@ -58,12 +63,6 @@ int setup(const char* arg)
 		return 0;
 	}
 
-	level.pixels = (uint16_t*)malloc(2 * 16 * 16);
-	memset(level.pixels, 0, 512);
-	level.width = 16;
-	level.height = 16;
-	level.stride = 16;
-	
 	free(tile_palette.pixels);
 	return 1;
 
@@ -71,12 +70,11 @@ int setup(const char* arg)
 
 void shutdown()
 {
+	save_file();
 	level_mod_shutdown();
 	palette_mod_shutdown();
 	nyfw_inputClose();
 	nyfw_windowClose();
-
-	free(level.pixels);
 }
 
 
@@ -148,8 +146,11 @@ void draw()
 
 int main(int argc, char* argv[]) 
 {
-	
-	if (!setup("")) return 1;	
+	const char* arg;
+	if (argc <= 1) arg = "";
+	else arg = argv[1];
+
+	if (!setup(arg)) return 1;	
 	nyfw_canvasClear(scr);
 	
 	while (running) {
